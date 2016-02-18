@@ -57,9 +57,11 @@ class Unique_channel_fields_ext {
 			'settings'	=> $this->_settings_url,
 		));
 	
-
 		ee()->load->helper('form');
 		ee()->load->library('table');
+		
+		ee()->cp->load_package_js('settings');
+		ee()->cp->load_package_css('settings');
 
 		$vars = array();
 
