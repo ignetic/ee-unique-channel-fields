@@ -382,6 +382,12 @@ class Unique_channel_fields_ext {
 		{
 			return FALSE;
 		}
+		
+		ee()->db->where('class', __CLASS__);
+		ee()->db->update(
+				'extensions', 
+				array('version' => $this->version)
+		);
 	}	
 	
 	// ----------------------------------------------------------------------
