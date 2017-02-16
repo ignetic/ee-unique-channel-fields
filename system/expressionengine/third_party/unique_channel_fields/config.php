@@ -15,7 +15,7 @@ if ( ! defined('UNIQUE_CHANNEL_FIELDS_NAME'))
 {
 	define('UNIQUE_CHANNEL_FIELDS_NAME',         'Unique Channel Fields');
 	define('UNIQUE_CHANNEL_FIELDS_CLASS_NAME',   'unique_channel_fields');
-	define('UNIQUE_CHANNEL_FIELDS_VERSION',      '1.1.1');
+	define('UNIQUE_CHANNEL_FIELDS_VERSION',      '1.1.2');
 }
 
 $config['name'] 	= UNIQUE_CHANNEL_FIELDS_NAME;
