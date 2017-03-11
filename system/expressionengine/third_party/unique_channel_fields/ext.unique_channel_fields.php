@@ -300,6 +300,10 @@ class Unique_channel_fields_ext {
 				
 				if ( $query->num_rows() > 0 ) 
 				{
+
+					ee()->load->library('api');
+					ee()->api->instantiate('channel_entries');
+					
 					$error_labels = array();
 					
 					// Store duplicates
