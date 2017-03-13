@@ -284,7 +284,7 @@ class Unique_channel_fields_ext {
 				if ($channel_form_obj->error_handling == 'inline')
 				{
 					ee()->channel_form_lib->errors[] = lang('duplicate_found').': '. $field_label;
-					ee()->channel_form_lib->field_errors[$field_name] = $field_label;
+					ee()->channel_form_lib->field_errors[$field_name] = lang('duplicate_found').': '. $field_label;
 				}
 				else
 				{
