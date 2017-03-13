@@ -193,13 +193,22 @@ class Unique_channel_fields_ext {
 			'settings'	=> serialize($this->settings),
 			'version'	=> $this->version,
 			'enabled'	=> 'y'
-		);	
+		);
+		
+		$data[] = array(
+			'class'		=> __CLASS__,
+			'method'	=> 'channel_form_submit_entry_start',
+			'hook'		=> 'channel_form_submit_entry_start',
+			'settings'	=> serialize($this->settings),
+			'version'	=> $this->version,
+			'enabled'	=> 'y'
+		);
 		
 		// insert in database
 		foreach($data as $key => $data) {
 			ee()->db->insert('exp_extensions', $data);
 		}
-	}	
+	}
 
 	
 	// ----------------------------------------------------------------------
@@ -207,13 +216,97 @@ class Unique_channel_fields_ext {
 	/**
 	 * entry_submission_start
 	 *
-	 * @param 
-	 * @return 
+	 * @param $channel_id (int), $autosave(bool)
+	 * @return Void
 	 */
 	function entry_submission_start($channel_id=0, $autosave=FALSE)
 	{
 		if ( ! $channel_id || $autosave === TRUE) return;
 		if ( ! isset($this->settings['fields']) || empty($this->settings['fields'])) return;
+		
+		$duplicates = $this->find_duplicates($channel_id);
+
+		if (!empty($duplicates))
+		{
+			// Load the unique_fields language file
+			ee()->lang->loadfile($this->class_name);
+			
+			foreach($duplicates as $field_name => $field_label)
+			{
+				ee()->api_channel_entries->_set_error(lang('duplicate_found').': '. $field_label, $field_name);
+			}
+			
+			ee()->javascript->output('$.ee_notice("'.ee()->lang->line('duplicate_found').'", {type : "error"})');
+			
+			if (isset($this->settings['settings']['show_confirm']) && $this->settings['settings']['show_confirm'] == 'y')
+			{
+				ee()->javascript->output('
+					$(window).bind("beforeunload", function() {
+						if (confirm) {
+							return "'.lang('not_saved').'";
+						}
+					});
+					$("form#publishForm").submit(function () {
+						$(window).unbind("beforeunload");
+					});
+				');
+			}
+		}
+
+	}
+
+
+	// ----------------------------------------------------------------------
+	
+	/**
+	 * channel_form_submit_entry_start
+	 *
+	 * @param $channel_form_obj (object)
+	 * @return Void
+	 */
+	function channel_form_submit_entry_start($channel_form_obj)
+	{
+
+		if ( ! isset($this->settings['fields']) || empty($this->settings['fields'])) return;
+		
+		$channel_id = $channel_form_obj->channel['channel_id'];
+		$custom_field_names = $channel_form_obj->custom_field_names;
+
+		$duplicates = $this->find_duplicates($channel_id, $custom_field_names);
+		
+		if (!empty($duplicates))
+		{
+			// Load the unique_fields language file
+			ee()->lang->loadfile($this->class_name);
+			
+			foreach($duplicates as $field_name => $field_label)
+			{
+				if ($channel_form_obj->error_handling == 'inline')
+				{
+					ee()->channel_form_lib->errors[] = lang('duplicate_found').': '. $field_label;
+					ee()->channel_form_lib->field_errors[$field_name] = $field_label;
+				}
+				else
+				{
+					ee()->output->show_user_error('submission', lang('duplicate_found').': '. $field_label, $field_name);
+				}
+			}
+		}
+		
+	}
+
+	
+	// ----------------------------------------------------------------------
+	
+	/**
+	 * find_duplicates
+	 *
+	 * @param int $channel_id
+	 * @return array
+	 */
+	private function find_duplicates($channel_id, $field_map=array())
+	{
+		$duplicates = array();
 		
 		// If status is set to closed, do nothing
 		$status = ee()->input->post('status');
@@ -221,7 +314,7 @@ class Unique_channel_fields_ext {
 		
 		// Get duplicate field settings
 		$field_ids = $this->settings['fields'];
-
+		
 		$entry_id = ee()->input->post('entry_id');
 		
 		if (isset($field_ids[$channel_id]) && !empty($field_ids[$channel_id]))
@@ -230,7 +323,9 @@ class Unique_channel_fields_ext {
 			// Get field types
 			$query = ee()->db->select('field_id, field_name, field_label, field_type')
 					->from('channel_fields')
-					->where('site_id', $this->site_id)
+					->join('channels', 'channels.field_group = channel_fields.group_id')
+					->where('channel_fields.site_id', $this->site_id)
+					->where('channel_id', $channel_id)
 					->get();
 
 			$results = $query->result_array();
@@ -239,12 +334,11 @@ class Unique_channel_fields_ext {
 
 			// Put field_types into manageable array
 			$channel_fields = array();
+			
 			foreach ($results as $result)
 			{
 				$channel_fields[$result['field_id']] = $result;
 			}
-			
-			$duplicates = array();
 
 			// Compare fields and find duplicates
 			foreach ($field_ids[$channel_id] as $field_group)
@@ -257,11 +351,20 @@ class Unique_channel_fields_ext {
 					
 					if (isset($channel_fields[$field_id]))
 					{
+						// correct field col name
+						if (!empty($field_map))
+						{
+							$post_field_name = $field_map[$field_id];
+						}
+						else 
+						{
+							$post_field_name = 'field_id_'.$field_id;
+						}
 						
 						$col_name = 'field_id_'.$field_id;
-						$col_value = ee()->input->post($col_name);
-						
-						$error_fields[$col_name] = $channel_fields[$field_id]['field_label'];
+						$col_value = ee()->input->post($post_field_name);
+
+						$error_fields[$post_field_name] = $channel_fields[$field_id]['field_label'];
 
 						if ($channel_fields[$field_id]['field_type'] == 'relationship' && is_array($col_value['data']))
 						{
@@ -273,7 +376,7 @@ class Unique_channel_fields_ext {
 							ee()->db->join('relationships', 'channel_data.entry_id = relationships.parent_id', 'inner');
 							ee()->db->where('relationships.field_id', $field_id);
 						}
-						else
+						elseif ( ! is_array($col_value))
 						{	
 							ee()->db->where('channel_data.'.$col_name, $col_value);
 							ee()->db->where('channel_data.'.$col_name.' !=', '');
@@ -297,7 +400,7 @@ class Unique_channel_fields_ext {
 						->limit(1)
 						->get()
 						;
-				
+
 				if ( $query->num_rows() > 0 ) 
 				{
 
@@ -317,38 +420,16 @@ class Unique_channel_fields_ext {
 						$duplicates[$field_name] = implode(', ', $error_labels);
 					}
 
-					// Load the unique_fields language file
-					ee()->lang->loadfile($this->class_name);
-					
-					foreach($duplicates as $field_name => $field_label)
-					{
-						ee()->api_channel_entries->_set_error(lang('duplicate_found').': '. $field_label, $field_name);
-					}
-					
-					ee()->javascript->output('$.ee_notice("'.ee()->lang->line('duplicate_found').'", {type : "error"})');
-					
-					if (isset($this->settings['settings']['show_confirm']) && $this->settings['settings']['show_confirm'] == 'y')
-					{
-						ee()->javascript->output('
-							$(window).bind("beforeunload", function() {
-								if (confirm) {
-									return "'.lang('not_saved').'";
-								}
-							});
-							$("form#publishForm").submit(function () {
-								$(window).unbind("beforeunload");
-							});
-						');
-					}
-					
 				}
+				
+				$query->free_result();
+				
 			}
-			
-			$this->end_script = TRUE;
-			
+
 		}
-
-
+		
+		return $duplicates;
+		
 	}
 
 	
@@ -393,9 +474,32 @@ class Unique_channel_fields_ext {
 	 */
 	function update_extension($current = '')
 	{
+
 		if ($current == '' OR $current == $this->version)
 		{
 			return FALSE;
+		}
+		
+		if (version_compare($current, '1.2', '<'))
+		{
+			
+			$query = ee()->db->select('settings')
+						  ->where('class', __CLASS__)
+						  ->get('extensions');
+		
+			foreach ($query->result() as $row)
+			{
+				$settings = $row->settings;
+			}
+
+			ee()->db->insert('extensions', array(
+				'class' 	=> __CLASS__, 
+				'method'	=> 'channel_form_submit_entry_start',
+				'hook'		=> 'channel_form_submit_entry_start',
+				'settings'	=> $settings,
+				'version'	=> $this->version,
+				'enabled'	=> 'y'
+			));
 		}
 		
 		ee()->db->where('class', __CLASS__);
