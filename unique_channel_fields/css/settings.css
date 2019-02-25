@@ -1,4 +1,10 @@
-.mainTable.padTable td h3 {
+#unique_channel_fields_form h3 {
+	margin: 0 0 10px 0;
+}
+#unique_channel_fields_form td {
+	white-space: normal;
+}
+#unique_channel_fields_form td h3 {
 	margin: 10px 0;
 }
 .field_selects p {
@@ -15,6 +21,7 @@
 	padding: 4px;
     border-radius: 3px;
 	border: 1px solid #A9A9A9;
+	margin: 2px 0;
 }
 .field_selects .or {
 	margin: 8px;
@@ -25,7 +32,7 @@
 .field_selects .and {
 	color: #92a57c;
 	display: inline-block;
-	margin: 0 5px;
+	margin: 5px 5px;
 }
 table.mainTable td.add_row {
 	border-top: 5px solid #2A3940;
@@ -90,4 +97,11 @@ table.mainTable td.add_row {
 	background-color: #dfdfdf;
 	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABI0lEQVQ4T4XTyypHURTH8c+fMHB5F0mRwsy/XIvM/mUgb2UiE0aSS8q1lLdQXkIGQqvOZp/dPjl16uy11++7rqfn7+k1n9+ZrfbZ8kuHUZxgCut474BM4gpv2MNnAOI9w0YjesBaBRLiayw0fscYhHgI91jKosY5z6QUh2tksppKmMAlFjPIXZPVcBE5XG6whY8ECGMN8oLoz0wG/hWHLQd0QfJ+tsQ1QIJED2aLSTyhH2nn9jKDuItRPmK6ADxjpZxOCQhxpDnXsQe32MwhOaAmjkzGMJ8BW5AEqIljztuIMV5guQZJixT15VGSODVsvNmTfNmi1H5a5VPsNBFKcQockLhLy3aI/VTCCI4QTrvlqLLUY9nO8YoDfNXG+M/f3L7+AV1MPhFGeThDAAAAAElFTkSuQmCC), 
 		linear-gradient(to bottom, #dfdfdf 5%, #ededed 100%);
+}
+.arrow {
+	font-size:28px;line-height:22px;vertical-align:top; margin-left:5%; color:#999;
+	white-space: nowrap;
+}
+input[type=submit].btn.submit {
+	padding-left:30px;padding-right:30px;
 }

@@ -1,6 +1,10 @@
 Changelog for Unique Channel Fields
 ===================================
 
+## 1.3.1
+
+- **Added**: Support for ExpressionEngine 3
+
 ## 1.2
 
 - **Added**: Support for Channel Forms

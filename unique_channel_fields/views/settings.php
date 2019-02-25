@@ -1,4 +1,4 @@
-<?=form_open('C=addons_extensions'.AMP.'M=save_extension_settings'.AMP.'file='.$class_name);?>
+<?=form_open($form_action, array('id' => 'unique_channel_fields_form'));?>
 
 <?php
 
@@ -68,11 +68,11 @@ elseif (isset($current['channels']))
 
 $this->table->add_row(
 	array(
-		'data' => '<div class="field_add"><p><label>'.lang('add_channel').'<br>'.form_dropdown('add[channel]', $channels, '').'</label></p></div>',
+		'data' => '<div class="field_add"><p><label>'.lang('add_channel').'<br>'.form_dropdown('add[channel]', $channels, '').'</label> <span class="arrow">&raquo;</span> </p></div>',
 		'class' => 'add_row'
 	),
 	array(
-		'data' => '<div class="field_add"><p><label>'.lang('channel_fields').'<br>'.form_dropdown('add[fields][]', $field_titles, '').'</label><label></p></div>',
+		'data' => '<div class="field_add"><p><label>'.lang('channel_fields').'<br>'.form_dropdown('add[fields][]', $field_titles, '').'</label></p></div>',
 		'class' => 'add_row'
 	),
 	array(
@@ -83,22 +83,33 @@ $this->table->add_row(
 
 echo $this->table->generate();
 
-
-echo '<h3>'.lang('preferences').'</h3>';
-
-$this->table->set_heading(array('data' => lang('settings'), 'style' => 'width:25%;'), lang('preference'));
-
-$this->table->add_row(
-	'<h4>'.lang('show_confirm').'</h4>'.lang('show_confirm_description'),
-	'<label>'.form_radio('settings[show_confirm]', 'y', ($show_confirm == 'y' ? TRUE : FALSE)).' Yes</label> &nbsp; '.
-	'<label>'.form_radio('settings[show_confirm]', 'n', ($show_confirm != 'y' ? TRUE : FALSE)).' No</label>'
-);
-
-echo $this->table->generate();
+echo '<p>' . form_submit('submit', lang('submit'), 'class="btn submit"') . '</p>';
 
 ?>
 
-<p><?=form_submit('submit', lang('submit'), 'class="submit"')?></p>
+<br>
+
+<?php
+if ( ! $ee3) 
+{
+
+	echo '<h3>'.lang('preferences').'</h3>';
+
+	$this->table->set_heading(array('data' => lang('settings'), 'style' => 'width:25%;'), lang('preference'));
+
+	$this->table->add_row(
+		'<h4>'.lang('show_confirm').'</h4>'.lang('show_confirm_description'),
+		'<label>'.form_radio('settings[show_confirm]', 'y', ($show_confirm == 'y' ? TRUE : FALSE)).' Yes</label> &nbsp; '.
+		'<label>'.form_radio('settings[show_confirm]', 'n', ($show_confirm != 'y' ? TRUE : FALSE)).' No</label>'
+	);
+
+	echo $this->table->generate();
+
+	echo '<p>' . form_submit('submit', lang('submit'), 'class="btn submit"') . '</p>';
+
+}
+?>
+
 <?php $this->table->clear()?>
 <?=form_close()?>
 <?php
